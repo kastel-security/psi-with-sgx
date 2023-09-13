@@ -1,0 +1,8 @@
+*.o
+/GoogleMessages/*.pb.*
+/dep
+*.so
+*~
+\#*\#
+
+/build

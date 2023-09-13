@@ -1,0 +1,33 @@
+enclave {
+    //from "sgx_tkey_exchange.edl" import *;
+    from "/home/sgx/mbedtls-SGX/trusted/mbedtls_SGX.edl" import ocall_print_string;
+
+    include "sgx_key_exchange.h"
+    include "sgx_trts.h"
+
+    trusted {
+	public sgx_status_t init_onesided_nonce([out] sgx_quote_nonce_t *nonce);
+	public sgx_status_t init_onesided([in, size=32] uint8_t *mrenclave, [in] sgx_quote_nonce_t *othernonce, [out] sgx_ec256_public_t *ga, int role_in, [in] const sgx_target_info_t *p_qe_target, [out] sgx_report_t *p_report);
+	public sgx_status_t finish_kex([in] sgx_ec256_public_t *go, [in,string] const char *report, [in,string] const char *signature);
+	// public sgx_status_t setInput([in,size=144,count=n_elems] const unsigned char *elems, [out,size=160,count=n_elems] unsigned char *elem_out, int n_elems, [in] const sgx_target_info_t *p_qe_target, [out] sgx_report_t *p_report);
+	public sgx_status_t setInput([user_check] const unsigned char *elems, [user_check] unsigned char *elem_out, int n_elems, [in] const sgx_target_info_t *p_qe_target, [out] sgx_report_t *p_report);
+	public sgx_status_t releaseKey([out, size=16] unsigned char *out);
+	public sgx_status_t commit([user_check] const unsigned char *elems, int n_elems);
+	public sgx_status_t do_uhf([user_check] const unsigned char *elems, [user_check] uint64_t *hashes, [out] uint64_t *uhf, int n_elems, [in] const sgx_target_info_t *p_qe_target, [out] sgx_report_t *p_report);
+    };
+
+    
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
