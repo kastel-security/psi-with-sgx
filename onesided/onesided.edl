@@ -1,6 +1,6 @@
 enclave {
     //from "sgx_tkey_exchange.edl" import *;
-    from "/home/sgx/mbedtls-SGX/trusted/mbedtls_SGX.edl" import ocall_print_string;
+    from "../dep/mbedtls-SGX/build/mbedtls_SGX-2.6.0/lib/mbedtls_SGX.edl" import ocall_print_string;
 
     include "sgx_key_exchange.h"
     include "sgx_trts.h"

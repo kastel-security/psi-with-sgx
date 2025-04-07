@@ -46,8 +46,6 @@ add_definitions(-DNDEBUG -DEDEBUG)
 add_compile_options(-O3 -g -march=broadwell)
 add_compile_options(-fPIC -Wno-attributes)
 
-add_subdirectory(GoogleMessages)
-
 
 ############################### Enclave ###############################
 function(add_enclave TARGET_NAME ENCLAVE_SOURCE ENCLAVE_NAME ENCLAVE_UNTRUSTED_DIR_NAME)
@@ -129,12 +127,9 @@ function(add_enclave TARGET_NAME ENCLAVE_SOURCE ENCLAVE_NAME ENCLAVE_UNTRUSTED_D
 
 endfunction()
 
-add_enclave(intersection-enclave IntersectionEnclave isv_enclave ENCLAVE_UNTRUSTED_DIR)
-add_enclave(hash-enclave HashingEnclave isv_enclave HASH_ENCLAVE_UNTRUSTED_DIR)
-
 add_enclave(onesided-enclave onesided onesided ONESIDED_UNTRUSTED_DIR)
 add_executable( onesided-app
-    onesided-app/main.cpp onesided-app/networking.cpp onesided-app/radixsort.cpp ${ONESIDED_UNTRUSTED_DIR}/onesided_u.c ${HASH_ENCLAVE_UNTRUSTED_DIR}/isv_enclave_u.c
+    onesided-app/main.cpp onesided-app/networking.cpp onesided-app/radixsort.cpp ${ONESIDED_UNTRUSTED_DIR}/onesided_u.c
 )
 
 target_include_directories( onesided-app PRIVATE
@@ -150,9 +145,6 @@ target_link_libraries( onesided-app
 ############################### libutil.a ###############################
 add_library(util
     Util/LogBase.cpp
-    Networking/Session.cpp Networking/Server.cpp
-    Networking/Client.cpp
-    Networking/AbstractNetworkOps.cpp
     Enclave_shared/IASReport.cpp
     Enclave_shared/UtilityFunctions.cpp
     Enclave_shared/Base64.cpp
@@ -161,7 +153,7 @@ add_library(util
     Enclave/Enclave.cpp
 )
 target_include_directories( util PUBLIC
-    Util Networking Enclave Enclave_shared
+    Util Enclave Enclave_shared
     dep/mbedtls/build/include
     ${SGX_SDK}/include
 )
@@ -182,67 +174,3 @@ target_link_libraries(util LINK_PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/dep/mbedtls-SGX/build/mbedtls_SGX-2.6.0/lib/libmbedtls_SGX_u.a
 )
 
-############################### app ###############################
-add_executable( app
-    Application/isv_app.cpp ${ENCLAVE_UNTRUSTED_DIR}/isv_enclave_u.c
-    MessageHandler/MessageHandler.cpp MessageHandler/SessionHandler.cpp
-)
-
-target_include_directories( app PRIVATE
-    ${ENCLAVE_UNTRUSTED_DIR}
-    MessageHandler Application/isv_app
-)
-
-target_link_libraries( app
-    util
-) 
-
-add_executable( repro 
-    ServiceProvider/minimal_repro.cpp
-)
-target_link_libraries( repro
-    util
-)
-
-add_executable( network_test
-    Networking/NetworkingTest.cpp
-)
-target_link_libraries( network_test
-    util
-)
-
-############################### service ###############################
-add_executable( service
-    ${HASH_ENCLAVE_UNTRUSTED_DIR}/isv_enclave_u.c
-    ServiceProvider/isv_app/isv_app.cpp ServiceProvider/isv_app/VerificationManager.cpp
-)
-target_include_directories( service PRIVATE
-    ${HASH_ENCLAVE_UNTRUSTED_DIR}
-    ServiceProvider/sample_libcrypto
-)
-target_link_libraries( service 
-    ${CMAKE_CURRENT_SOURCE_DIR}/ServiceProvider/sample_libcrypto/libsample_libcrypto.so
-    util
-    service_provider
-)
-
-############################### service_provider ###############################
-add_library( service_provider SHARED
-    ServiceProvider/service_provider/ecp.cpp Util/LogBase.cpp 
-    ServiceProvider/service_provider/ias_ra.cpp Enclave_shared/UtilityFunctions.cpp
-)
-target_include_directories( service_provider PUBLIC
-    WebService
-    ServiceProvider/service_provider
-)
-target_include_directories( service_provider PRIVATE
-    ServiceProvider/sample_libcrypto
-    dep/mbedtls/build/include
-)
-target_link_libraries( service_provider
-    util
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/ServiceProvider/sample_libcrypto/libsample_libcrypto.so
-    ${CMAKE_CURRENT_SOURCE_DIR}/dep/mbedtls/build/library/libmbedcrypto.a
-    ${CMAKE_CURRENT_SOURCE_DIR}/dep/mbedtls/build/library/libmbedtls.a
-)
